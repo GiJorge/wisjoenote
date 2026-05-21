@@ -7,7 +7,7 @@
           <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
         <div class="h-8 w-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-black text-lg shadow shadow-indigo-500/20">G</div>
-        <h1 class="text-lg md:text-xl font-black tracking-tight text-slate-900 dark:text-white">GiNote Studio</h1>
+        <h1 class="text-lg md:text-xl font-black tracking-tight text-slate-900 dark:text-white">WisJoe Notes </h1>
       </div>
 
       <div class="flex items-center gap-2 md:gap-4">
@@ -198,7 +198,7 @@
 
           <div class="grid grid-cols gap-1">
             <div class="space-y-1 min-w-0">
-              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">English Canvas</label>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Canvas</label>
               <!-- <div 
                 v-if="!isEditing" 
                 @mouseup="checkTextSelection"
@@ -208,7 +208,7 @@
               >
               </div> -->
                <article  v-if="!isEditing" class="prose dark:prose-invert max-w-none">
-      <div class="text-md" v-html="compiledMarkdown"></div>
+      <div class="text-lg" v-html="compiledMarkdown"></div>
     </article>
 
   
