@@ -64,6 +64,7 @@
               >
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
               </button>
+             <span class="text-xs m-4"> <strong> created:</strong>  {{ formatTimeAgo(modelValue.created_at) }}</span>
             </div>
           </div>
           
@@ -104,7 +105,7 @@
             class="w-full min-h-[250px] md:min-h-[400px] bg-slate-50/50 dark:bg-slate-950/30 border border-slate-100 dark:border-slate-900 rounded-2xl p-4 font-sans prose dark:prose-invert text-slate-700 dark:text-slate-300 selection:bg-indigo-500/30 overflow-y-auto leading-relaxed text-sm md:text-base"
           ></div> -->
                <article  v-if="!isEditing"  class="prose dark:prose-invert max-w-none">
-      <div class="text-lg"  v-html="compiledMarkdown"></div>
+      <div class="text-lg" @click="handleCanvasClick" v-html="enhancedMarkdownContent" ></div>
     </article>
 
           <textarea v-else v-model="modelValue.content" rows="16" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-xs md:text-sm leading-relaxed" placeholder="Write markdown content layout rows..."></textarea>
@@ -139,7 +140,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'; // Added lifecycles
 
 const props = defineProps({
   modelValue: Object,
@@ -150,51 +151,131 @@ const props = defineProps({
   categorySuggestions: Array
 });
 
-const emit = defineEmits(['update:modelValue', 'update:isEditing', 'save-note', 'delete-note', 'translate-selection']);
+// Add our explicit event emitter out to the parent engine
+const emit = defineEmits(['update:modelValue', 'update:isEditing', 'save-note', 'delete-note', 'translate-selection', 'open-glossary']);
 
 const showSuggestions = ref(false);
 const selectedText = ref('');
 const showCopiedTooltip = ref(false);
 
-const hasSelection = computed(() => selectedText.value.trim().length > 0);
+// 1. YOUR CENTRAL GLOSSARY DICTIONARY (Add your unique terms here)
+const glossaryDictionary = {
+   "አዕምሮአዊ አሰራሩን": "በበርካታ ሁኔታዎች የተሰራ ወይም የተዋሃደ አእምሮ። አእምሮአችንን የሚሠሩት የተለያዩ  ሁኔታዎች  ናቸው፣ ልክ የውሃ ጠብታዎች ወንዝ መስራት እንደሚችሉት ።",
+  "ጃናስ": "   ጥልቅ ጸጥታ፣ ተመስጦ፡- ቃሉ “ልብ በማለት መመሰጥ” ማለት ነው። በጃና ውስጥ ሲሆኑ፣ ትኩረትዎ በጣም ጠንካራ ከመሆኑ የተነሳ  እስትንፋስ አንድ በመሆን፣ በዙሪያው ያለውን ዓለም እና ውጫዊ ድምፆች እንዲጠፉ ያደርጋል።   ",
+  "ኒሚታ": "አእምሮአዊ ምልከታ፣ ሜደቴተሩ ብዙውን ጊዜ በድንገት ከተዘጉ ዓይኖቻቸው በስተጀርባ የሚያበራ ብርሃን ያያሉ። እንደ ደካማ ጭጋግ፣ ብልጭ ድርግም የሚል ኮከብ ወይም የሚያብለጨልጭ ኦርብ ሊጀምር ይችላል፣ እና ከዚያም ወደ ደማቅ፣ አንጸባራቂ ብርሃን ሊሰፋ ይችላል።",
+  "ቺታ": "የጠራው አእምሮ፤ ምሳሌ ፦ የሚታዩት፣ የሚታሰቡት፣ የሚተነትኑት ሁሉ ተሰውረው  ዋናው እስካሁን ሲያሳየን የነበረው ያለምንም የሚታይ ነገር ማለት ነው",
+ // "ሰባቱ የንቃት ምክንያቶች": "1.ማስተዋል  2. በጥልቀት ማየት 3. ቁርጠኝነት እና ትክክለኛ ጥረት 4. የደስታ መንፈስና እርካታ 5. እርጋታና ጸጥታ 6. የሰከነና አንድ ነገር ላይ የተመሰጠ አአምሮ 7.አስቸጋሪ ሁኔታ ላይ መረጋጋት የሚችል አእምሮ",
+ // "": "1.አካልን  በጥልቀት መመልካት 2.ስሜቶቻችንን በጥልቀት መመልካት 3.የአእምሮን በጥልቀት መመልካት 4.የአዕምሮዊ ክስተቶችን በጥልቀት መመልካት",
+"ሰባቱ የንቃት ምክንያቶች": [
+    "ማስተዋል",
+    "በጥልቀት ማየት",
+    "ቁርጠኝነት እና ትክክለኛ ጥረት",
+    "የደስታ መንፈስና እርካታ",
+    "እርጋታና ጸጥታ",
+    "የሰከነና አንድ ነገር ላይ የተመሰጠ አአምሮ",
+    "አስቸጋሪ ሁኔታ ላይ መረጋጋት የሚችል አእምሮ"
+  ],
+  "አራቱ የማስተዋል": [
+    "አካልን  በጥልቀት መመልካት",
+    "ስሜቶቻችንን በጥልቀት መመልካት",
+    "ቁርጠኝነት እና ትክክለኛ ጥረት",
+    "የአዕምሮዊ ክስተቶችን በጥልቀት መመልከት",
+ 
+  ]
 
-// Safe formatting computed for Amharic content matching original logic
+
+};
+
+
+
+
+// 2. PARSER INJECTOR: Automatically wraps glossary terms in text canvas with clickable classes
+// 1. UPDATED ENGLISH CANVAS PARSER (Unicode Aware)
+const enhancedMarkdownContent = computed(() => {
+  let html = props.compiledMarkdown || '';
+  if (props.isEditing) return html;
+
+  Object.keys(glossaryDictionary).forEach(term => {
+    // (?<!\p{L}) means: Not preceded by a letter
+    // (?!\p{L})  means: Not followed by a letter
+    // The 'gu' flags stand for Global and Unicode mapping mode
+    const regex = new RegExp(`(?<!\\p{L})(${term})(?!\\p{L})`, 'gu');
+    
+    html = html.replace(regex, `<span class="glossary-term cursor-pointer underline decoration-dotted decoration-2 decoration-indigo-500/60 hover:decoration-indigo-600 font-bold text-indigo-600 dark:text-indigo-400 transition-colors" data-term="$1">$1</span>`);
+  });
+  
+  return html;
+});
+
+// 2. NEW: AMHARIC PANEL PARSER (Allows users to tap terms directly inside the translation panel too!)
+const enhancedAmharicContent = computed(() => {
+  if (!props.modelValue.amharic_content) return '';
+  
+  // Apply standard line-break mapping first
+  let html = props.modelValue.amharic_content.replace(/\n/g, '<br>');
+  if (props.isEditing) return html;
+
+  Object.keys(glossaryDictionary).forEach(term => {
+    const regex = new RegExp(`(?<!\\p{L})(${term})(?!\\p{L})`, 'gu');
+    html = html.replace(regex, `<span class="glossary-term cursor-pointer underline decoration-dotted decoration-2 decoration-indigo-500/60 hover:decoration-indigo-600 font-bold text-indigo-600 dark:text-indigo-400 transition-colors" data-term="$1">$1</span>`);
+  });
+  
+  return html;
+});
+
+// 3. CAPTURE RENDERED DOM CLICKS: Handles events cleanly inside raw parsed v-html structures
+
+// 2. Updated click handler to forward the exact definition payload (string or array)
+const handleCanvasClick = (event) => {
+  const glossaryEl = event.target.closest('.glossary-term');
+  if (!glossaryEl) return;
+  
+  event.preventDefault();
+  const selectedTerm = glossaryEl.getAttribute('data-term');
+  if (!selectedTerm) return;
+
+  const matchedKey = Object.keys(glossaryDictionary).find(
+    key => key.toLowerCase() === selectedTerm.toLowerCase()
+  );
+
+  if (matchedKey) {
+    // Emitting the term name and whatever its data type is directly
+    emit('open-glossary', {
+      term: matchedKey,
+      definition: glossaryDictionary[matchedKey] 
+    });
+  }
+};
+// Rest of your existing functions unchanged...
+const hasSelection = computed(() => selectedText.value.trim().length > 0);
 const formattedAmharic = computed(() => {
   if (!props.modelValue.amharic_content) return '';
   return props.modelValue.amharic_content.replace(/\n/g, '<br>');
 });
-
 const filteredCategories = computed(() => {
   const currentInput = (props.modelValue.category || '').trim().toLowerCase();
   if (!currentInput) return props.categorySuggestions;
   return props.categorySuggestions.filter(cat => cat.toLowerCase().includes(currentInput));
 });
+const toggleEditMode = () => { emit('update:isEditing', !props.isEditing); };
+const selectCategorySuggestion = (cat) => { props.modelValue.category = cat; showSuggestions.value = false; };
+const hideSuggestionsWithDelay = () => { setTimeout(() => { showSuggestions.value = false; }, 200); };
+const copyShareLink = () => { navigator.clipboard.writeText(window.location.href); showCopiedTooltip.value = true; setTimeout(() => { showCopiedTooltip.value = false; }, 1500); };
+//const checkTextSelection = () => { const selection = window.getSelection(); if (selection && selection.toString().trim().length > 0) { selectedText.value = selection.toString(); } else { selectedText.value = ''; } };
 
-const toggleEditMode = () => {
-  emit('update:isEditing', !props.isEditing);
-};
 
-const selectCategorySuggestion = (cat) => {
-  props.modelValue.category = cat;
-  showSuggestions.value = false;
-};
 
-const hideSuggestionsWithDelay = () => {
-  setTimeout(() => { showSuggestions.value = false; }, 200);
-};
-
-const copyShareLink = () => {
-  navigator.clipboard.writeText(window.location.href);
-  showCopiedTooltip.value = true;
-  setTimeout(() => { showCopiedTooltip.value = false; }, 1500);
-};
-
-const checkTextSelection = () => {
-  const selection = window.getSelection();
-  if (selection && selection.toString().trim().length > 0) {
-    selectedText.value = selection.toString();
-  } else {
-    selectedText.value = '';
+const formatTimeAgo = (dateString) => {
+  if (!dateString) return 'Unknown date';
+  const date = new Date(dateString);
+  const now = new Date();
+  const secondsDiff = Math.floor((now - date) / 1000);
+  if (secondsDiff < 1) return 'Just now';
+  const intervals = { year: 31536000, month: 2592000, week: 604800, day: 86400, hour: 3600, minute: 60, second: 1 };
+  for (const [unit, value] of Object.entries(intervals)) {
+    const count = Math.floor(secondsDiff / value);
+    if (count >= 1) return `${count} ${unit}${count > 1 ? 's' : ''} ago`;
   }
+  return 'Just now';
 };
 </script>

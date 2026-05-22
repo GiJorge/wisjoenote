@@ -28,12 +28,20 @@
         :is-authenticated="isAuthenticated"
         :compiled-markdown="compiledMarkdown"
         :category-suggestions="dynamicCategorySuggestions"
+        :created-at="notes.find(n => n.id === form.id)?.created_at" 
+         :updated-at="notes.find(n => n.id === form.id)?.updated_at" 
         @save-note="submitSaveNote"
         @delete-note="showDeleteModal = true" @translate-selection="translateSelectedText"
+        @open-glossary="triggerGlossaryView"
 
       />
 
     </div>
+<GlossaryPanel 
+  :is-open="activeGlossary.isOpen"
+  :term="activeGlossary.term"
+  :definition="activeGlossary.definition" @close="activeGlossary.isOpen = false"
+/>
 
     <ConfirmationModal 
       :show="showDeleteModal"
@@ -41,6 +49,8 @@
       @confirm="deleteActiveNote"
     />
   </div>
+
+
 </template>
 
 <script setup>
@@ -61,11 +71,27 @@ const props = defineProps({
   activeNoteId: Number
 });
 
+
+
+// Inside your setup function block, initialize reactive values for state tracking
+const activeGlossary = ref({
+  isOpen: false,
+  term: '',
+  definition: null // This will automatically adapt to hold a String or an Array
+});
+
+const triggerGlossaryView = (payload) => {
+  activeGlossary.value.term = payload.term;
+  activeGlossary.value.definition = payload.definition; // Catches string or array safely
+  activeGlossary.value.isOpen = true;
+};
+
+
 const page = usePage();
 const activeNoteSelected = ref(false);
 const isEditing = ref(false);
 const isMobileMenuOpen = ref(false);
-
+import GlossaryPanel from '@/Components/GlossaryPanel.vue';
 const searchQuery = ref('');
 const selectedCategoryFilter = ref('ALL');
 
@@ -76,7 +102,9 @@ const form = useForm({
   title: '',
   content: '',
   amharic_content: '',
-  category: 'General'
+  category: 'General',
+  created_at: null, 
+  updated_at: null
 });
 
 onMounted(() => {
@@ -126,6 +154,8 @@ const selectNote = (note) => {
   form.content = note.content;
   form.amharic_content = note.amharic_content;
   form.category = note.category || 'General';
+  form.created_at = note.created_at; 
+  form.updated_at = note.updated_at;
 
   window.history.pushState({}, '', `/notes/${note.id}`);
   forceScrollReset();
@@ -213,4 +243,7 @@ const deleteActiveNote = () => {
     }
   });
 };
+
+
+
 </script>
