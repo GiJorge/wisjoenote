@@ -18,8 +18,11 @@ class NoteController extends Controller
 
 public function index(Note $note = null)
 {
+
+$notes = Note::orderBy('updated_at', 'desc')->get();
     return inertia('Welcome', [
-        'notes' => Note::latest()->get(),
+        'notes' => $notes,
+        //'created_time_ago' => $note->created_at->diffForHumans(), 
         'activeNoteId' => $note ? $note->id : null, // Pass the shared note ID down
     ]);
 }
@@ -34,6 +37,7 @@ public function index(Note $note = null)
             'content'         => 'nullable|string',
             'amharic_content' => 'nullable|string',
             'category'        => 'nullable|string',
+
         ]);
 
         Note::updateOrCreate(

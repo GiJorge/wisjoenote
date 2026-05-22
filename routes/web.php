@@ -32,6 +32,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/notes/{note}', [NoteController::class, 'destroy'])->name('notes.destroy');
 });
 
+Route::get('/register', function () {
+    return redirect('/login');
+});
+
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
