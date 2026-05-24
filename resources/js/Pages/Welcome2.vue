@@ -21,7 +21,7 @@
         @close-mobile-menu="isMobileMenuOpen = false"
       />
 
-      <Workspace 
+      <NewWorkspace 
         v-model="form"
         v-model:isEditing="isEditing"
         :active-note-selected="activeNoteSelected"
@@ -61,8 +61,9 @@ import { marked } from 'marked';
 // Import our new atomic sub-components
 import Navbar from '@/Components/Navbar.vue';
 import Sidebar from '@/Components/Sidebar.vue';
-import Workspace from '@/Components/Workspace.vue';
+import NewWorkspace from '@/Components/NewWorkspace.vue';
 import ConfirmationModal from '@/Components/ConfirmationModal.vue'; 
+
 
 const showDeleteModal = ref(false);
 

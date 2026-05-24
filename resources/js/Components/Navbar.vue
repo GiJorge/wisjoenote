@@ -9,7 +9,7 @@
        <ApplicationLogo class="block  w-auto " />
 
       </div>
-      <h1 class="text-lg md:text-xl font-black tracking-tight text-slate-900 dark:text-white">WisJoe Notes</h1>
+      <h1 class="text-lg md:text-xl font-black tracking-tight text-slate-900 dark:text-white">Wisdom Ethiopia </h1>
     </div>
 
     <div class="flex items-center gap-2 md:gap-4">
@@ -24,8 +24,8 @@
 
       <div :class="[isAuthenticated ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 border-amber-500/20']" class="text-[11px] md:text-xs font-semibold px-2.5 py-1 md:py-1.5 rounded-full border flex items-center gap-1.5 shadow-sm">
         <span :class="[isAuthenticated ? 'bg-emerald-500' : 'bg-amber-500']" class="h-1.5 w-1.5 md:h-2 md:w-2 rounded-full"></span>
-        <span class="hidden sm:inline">{{ isAuthenticated ? `Logged in as Editor` : 'Guest Mode (Read-Only)' }}</span>
-        <span class="sm:hidden">{{ isAuthenticated ? `Editor` : 'Guest' }}</span>
+        <span class="hidden sm:inline">{{ isAuthenticated ? `Logged in as Editor` : 'Guest' }}</span>
+        <!-- <span class="sm:hidden">{{ isAuthenticated ? `Editor` : 'Guest' }}</span> -->
       </div>
       <a v-if="!isAuthenticated" :href="route('login')" class="text-xs font-bold text-indigo-600 hover:underline">Log In</a>
     </div>

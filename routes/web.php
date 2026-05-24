@@ -26,6 +26,17 @@ Route::get('/notes/{note}', [NoteController::class, 'index'])->name('notes.show'
 
 
 
+
+
+//
+
+// The standard dashboard entry point
+Route::get('/n', [NoteController::class, 'index1'])->name('notes.index');
+
+//
+
+
+
 // Protected Editor Routes (Only for logged-in Breeze users)
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/notes', [NoteController::class, 'store'])->name('notes.store');

@@ -27,6 +27,18 @@ $notes = Note::orderBy('updated_at', 'desc')->get();
     ]);
 }
 
+public function index1(Note $note = null)
+{
+
+$notes = Note::orderBy('updated_at', 'desc')->get();
+    return inertia('Welcome2', [
+        'notes' => $notes,
+        //'created_time_ago' => $note->created_at->diffForHumans(), 
+        'activeNoteId' => $note ? $note->id : null, // Pass the shared note ID down
+    ]);
+}
+
+
 
     // Handle creating and updating notes seamlessly
     public function store(Request $request)
